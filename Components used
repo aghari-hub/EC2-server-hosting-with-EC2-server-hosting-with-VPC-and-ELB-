@@ -1,0 +1,6 @@
+1.Virtual Private Cloud (VPC): A private, isolated section of the AWS cloud where you can launch AWS resources. It provides control over your network environment, including IP address ranges, subnets, route tables, and network gateways. You typically deploy an internet-facing load balancer in public subnets, while the EC2 instances themselves can reside in private subnets for added security, only receiving traffic from the load balancer.
+
+2.Elastic Load Balancing (ELB): A service that automatically distributes incoming application or network traffic across multiple targets, such as EC2 instances, in multiple Availability Zones.
+  Application Load Balancer (ALB): Best for HTTP/HTTPS traffic, offering advanced routing based on request content (like path or host headers).
+  Network Load Balancer (NLB): Best for TCP/UDP traffic where high performance and static IP addresses are needed.
+3.EC2 Instances: The virtual servers where your application or web server (e.g., Apache, Nginx) is installed and running
