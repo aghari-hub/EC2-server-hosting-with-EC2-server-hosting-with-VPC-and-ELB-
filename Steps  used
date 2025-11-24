@@ -1,0 +1,128 @@
+# EC2 Server Hosting with VPC and Elastic Load Balancer
+
+This project demonstrates how to host a web server on **Amazon EC2**, deployed inside a secure **VPC network**, and exposed to users using an **Elastic Load Balancer (ALB)**.  
+It follows AWS best practices for networking, routing, and security.
+
+---
+
+## 📘 Architecture Diagram
+
+![Architecture Diagram](../A_diagram_presents_an_AWS_architecture_for_hosting.png)
+
+---
+
+## 🧩 Architecture Components
+
+### **Amazon VPC**
+- Custom isolated network  
+- CIDR: 10.0.0.0/16  
+- Contains public subnets for EC2 + Load Balancer
+
+### **Public Subnets**
+- Host EC2 instances  
+- Have internet access via Internet Gateway
+
+### **Internet Gateway**
+- Allows public subnets to send/receive internet traffic
+
+### **Route Tables**
+- Public subnets route `0.0.0.0/0` → Internet Gateway
+
+### **Amazon EC2**
+- Hosts the web application  
+- Installed Apache/HTTPD using User Data
+
+### **Application Load Balancer (ALB)**
+- Distributes traffic across EC2 instances  
+- Performs health checks  
+- Internet-facing
+
+### **Security Groups**
+- ALB SG allows HTTP from anywhere  
+- EC2 SG only allows HTTP from ALB SG  
+- SSH access restricted to user IP (optional)
+
+---
+
+## ✅ Prerequisites
+
+- AWS Account
+- Basic understanding of:
+  - VPC, subnets, routing
+  - EC2 and security groups
+- SSH Key Pair created in AWS
+- Simple HTML page or app to host
+- AWS Free Tier recommended
+
+---
+
+# 🚀 Step-by-Step Deployment Guide
+
+## **1. Create a Custom VPC**
+1. Go to **VPC → Create VPC**  
+2. Name: `ec2-vpc-project`  
+3. IPv4 CIDR: `10.0.0.0/16`  
+4. Create
+
+---
+
+## **2. Create Public Subnets**
+Create 2 subnets:
+
+- `10.0.1.0/24` → public-subnet-1  
+- `10.0.2.0/24` → public-subnet-2  
+
+Enable **Auto-assign public IPv4** for both.
+
+---
+
+## **3. Create and Attach Internet Gateway**
+1. Go to **Internet Gateways → Create**  
+2. Name: `ec2-igw`  
+3. Attach to VPC
+
+---
+
+## **4. Configure Route Table**
+1. Use main route table or create `public-rt`  
+2. Add route:  
+   - Destination: `0.0.0.0/0`  
+   - Target: **Internet Gateway**  
+3. Associate both public subnets
+
+---
+
+## **5. Create Security Groups**
+
+### **Load Balancer SG – `elb-sg`**
+Inbound:
+- HTTP (80) → 0.0.0.0/0
+
+### **EC2 SG – `ec2-web-sg`**
+Inbound:
+- HTTP (80) → Source: `elb-sg`
+- SSH (22) → Your IP only *(optional)*
+
+Outbound: allow all
+
+---
+
+## **6. Launch EC2 Instance**
+1. Go to **EC2 → Launch Instance**
+2. AMI: Amazon Linux 2  
+3. Type: t2.micro  
+4. Network:  
+   - VPC: `ec2-vpc-project`  
+   - Subnet: public-subnet-1  
+5. Security group: `ec2-web-sg`
+6. Add **User Data**:
+
+```bash
+#!/bin/bash
+yum update -y
+yum install -y httpd
+systemctl enable httpd
+systemctl start httpd
+echo "<h1>Welcome from EC2 in VPC behind ELB</h1>" > /var/www/html/index.html
+
+References --https://www.youtube.com/watch?v=dsH2QC6O3Gg&list=PLneBjIzDLECkz7SwM-HFqZsvAZDz4hcpq&index=4
